@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFP Response Assistant</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans antialiased min-h-full selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 border-b border-indigo-500/20 px-4 py-2.5 text-xs font-medium tracking-wide text-indigo-200/90 flex justify-between items-center shadow-sm">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">Enterprise</span>
+      <span>Sales Engineering Portal</span>
+    </div>
+    <span id="kb-count-banner" class="font-mono text-indigo-300/80">Knowledge base: loading&hellip;</span>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 py-12 md:py-16 space-y-12">
+    
+    <header class="space-y-4 max-w-3xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-400 tracking-wider uppercase">
+        <span class="h-2 w-2 rounded-full bg-indigo-400 animate-pulse"></span>
+        RAG-Backed AI Pipeline
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+        RFP Response Assistant
+      </h1>
+      <p class="text-base md:text-lg text-slate-400 leading-relaxed">
+        Paste a question from a client's security questionnaire or RFP. The system runs an automated semantic retrieval query across your internal company policy documentation, then automatically compiles an authoritative response.
+      </p>
+    </header>
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-sm overflow-hidden">
+      <div class="border-b border-slate-800/80 px-6 py-4 flex justify-between items-center bg-slate-900/40">
+        <label for="question" class="text-sm font-semibold tracking-wide text-slate-300 uppercase">Client Questionnaire Input</label>
+        <span id="charcount" class="font-mono text-xs text-slate-500 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">0 characters</span>
+      </div>
+      
+      <div class="p-6 space-y-6">
+        <textarea id="question" 
+          placeholder="e.g. Does your platform support SSO and enforce MFA? What identity providers are supported?"
+          class="w-full min-h-[140px] bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition font-sans text-sm resize-y leading-relaxed"
+        ></textarea>
+        
+        <div class="space-y-2">
+          <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Sample Test Scenarios</span>
+          <div class="chips flex flex-wrap gap-2">
+            <button class="chip px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg text-xs font-medium text-slate-300 transition" data-q="Do you encrypt customer data at rest and in transit? What standard do you use?">Encryption standard</button>
+            <button class="chip px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg text-xs font-medium text-slate-300 transition" data-q="Are you SOC 2 Type II certified? Can you provide the report?">SOC 2 report</button>
+            <button class="chip px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg text-xs font-medium text-slate-300 transition" data-q="What is your uptime SLA and disaster recovery RTO/RPO?">Uptime &amp; DR</button>
+            <button class="chip px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg text-xs font-medium text-slate-300 transition" data-q="Will you sign a BAA for HIPAA data?">HIPAA / BAA</button>
+            <button class="chip px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg text-xs font-medium text-slate-300 transition" data-q="How long do you retain our data after we cancel our contract?">Data retention</button>
+          </div>
+        </div>
+
+        <div class="actions flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-slate-800/60">
+          <button id="draftBtn" class="primary px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/10 hover:shadow-indigo-500/20 transition-all duration-150 flex items-center justify-center gap-2">
+            Draft Response
+          </button>
+          <span class="hint text-xs text-slate-500 font-medium">
+            Context retrieval builds locally &middot; generation processed via Gemini Studio
+          </span>
+        </div>
+        
+        <div id="statusLine" class="status text-sm text-indigo-400 font-medium bg-indigo-950/30 border border-indigo-900/50 px-4 py-3 rounded-xl animate-pulse" style="display:none;"></div>
+        <div id="errorBox" class="error-box text-sm text-rose-400 bg-rose-950/30 border border-rose-900/50 px-4 py-3 rounded-xl font-mono whitespace-pre-wrap" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="results" class="space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        <div class="lg:col-span-2">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-sm overflow-hidden draft-box">
+            <div class="border-b border-slate-800/80 px-6 py-4 flex justify-between items-center bg-slate-900/40">
+              <span class="text-sm font-semibold tracking-wide text-slate-300 uppercase">Compiled Draft Output</span>
+              <button id="copyBtn" class="copy-btn px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 rounded-md transition active:scale-95">
+                Copy text
+              </button>
+            </div>
+            <div id="draftText" class="p-6 text-sm text-slate-300 leading-relaxed min-h-[160px] bg-slate-950/40 font-sans whitespace-pre-wrap"></div>
+          </div>
+        </div>
+        
+        <div class="sources space-y-4">
+          <h2 class="text-xs font-bold text-slate-400 tracking-widest uppercase">Verified Context Grounding</h2>
+          <div id="sourceCards" class="space-y-3"></div>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="browse pt-8 border-t border-slate-900 space-y-4">
+      <h2 class="text-sm font-bold text-slate-400 tracking-wider uppercase">Active Context Index &mdash; Connected Nodes</h2>
+      <div id="docGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
