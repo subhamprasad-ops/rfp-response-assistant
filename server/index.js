@@ -91,7 +91,7 @@ app.post("/api/draft", async (req, res) => {
     .map((m) => `[${m.document.id}] ${m.document.title}\n${m.document.content}`)
     .join("\n\n---\n\n");
 
-  const prompt = `You are a sales engineer drafting a response to a question from a client's RFP or security questionnaire. Use ONLY the internal documentation provided below. Write clear, confident, professional business prose (no headers, 2-5 sentences typically). Cite the relevant document ID in brackets at the end of a sentence when you state a specific fact, e.g. "...encrypted using AES-256 [SEC-ENC-01]." If the provided context does not fully answer the question, say so plainly rather than guessing.
+  const prompt = `You are a friendly, expert AI Travel Guide. Use ONLY the internal travel documentation provided below to answer the user's question. Write clear, engaging, and helpful advice (no headers, 2-5 sentences typically). Cite the relevant document ID in brackets at the end of a sentence when you state a specific fact, e.g. "...always use private browsing [TRV-BUDGET-01]." If the provided context does not fully answer the question, say so plainly rather than guessing.
 
 CLIENT QUESTION:
 """${question}"""
@@ -99,8 +99,7 @@ CLIENT QUESTION:
 RELEVANT INTERNAL DOCUMENTATION:
 """${context}"""
 
-Write only the response text, ready to paste into the RFP document. Do not include a preamble.`;
-
+Write only the response text. Do not include a preamble.`;
   try {
     // 5. Updated to use the correct Google Gen AI generateContent method
     const response = await ai.models.generateContent({
