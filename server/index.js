@@ -120,11 +120,12 @@ Write only the response text, ready to paste into the RFP document. Do not inclu
   }
 });
 
-// Fallback route to manually serve the main webpage if static serving skips it
-app.get("/", (req, res) => {
+// Fallback route to manually serve the main webpage for ALL traffic
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`RFP Response Assistant running at http://localhost:${PORT}`);
+// Explicitly bind to 0.0.0.0 for cloud environments
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`RFP Response Assistant running on port ${PORT}`);
 });
