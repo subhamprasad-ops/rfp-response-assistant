@@ -1,15 +1,3 @@
-/**
- * Loads and parses the markdown knowledge base at server startup.
- *
- * Each .md file is expected to contain:
- *   # Document Title
- *   **Policy ID:** SEC-XXX-01   (or **Doc ID:** PROD-XXX-01)
- *   ...rest of the document body...
- *
- * Folder name under /data becomes the document's category, so you can add
- * a new category simply by creating a new folder — no code changes needed.
- */
-
 const fs = require("fs");
 const path = require("path");
 
@@ -25,11 +13,12 @@ function titleCaseFromSlug(slug) {
 function parseDocument(filePath, category) {
   const raw = fs.readFileSync(filePath, "utf-8");
 
+  // Gracefully handles missing markdown headers
   const titleMatch = raw.match(/^#\s+(.+)$/m);
   const idMatch = raw.match(/\*\*(?:Policy ID|Doc ID):\*\*\s*([A-Z0-9-]+)/i);
 
-  const title = titleMatch ? titleMatch[1].trim() : titleCaseFromSlug(path.basename(filePath, ".md"));
-  const id = idMatch ? idMatch[1].trim() : path.basename(filePath, ".md").toUpperCase();
+  const title = titleMatch ? titleMatch[1].trim() : titleCaseFromSlug(path.basename(filePath).replace(/\.(md|txt)$/, ""));
+  const id = idMatch ? idMatch[1].trim() : path.basename(filePath).replace(/\.(md|txt)$/, "").toUpperCase();
 
   return {
     id,
@@ -43,20 +32,30 @@ function parseDocument(filePath, category) {
 function loadKnowledgeBase() {
   const documents = [];
 
-  const categoryFolders = fs
-    .readdirSync(DATA_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory());
+  // Prevents server crash if the data folder is completely missing
+  if (!fs.existsSync(DATA_DIR)) {
+    console.warn("Data directory not found. Starting with empty knowledge base.");
+    return documents;
+  }
 
-  for (const folder of categoryFolders) {
-    const categoryLabel = titleCaseFromSlug(folder.name);
-    const folderPath = path.join(DATA_DIR, folder.name);
+  const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
 
-    const files = fs
-      .readdirSync(folderPath)
-      .filter((f) => f.endsWith(".md"));
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      // Logic for files inside subfolders
+      const categoryLabel = titleCaseFromSlug(entry.name);
+      const folderPath = path.join(DATA_DIR, entry.name);
 
-    for (const file of files) {
-      documents.push(parseDocument(path.join(folderPath, file), categoryLabel));
+      const files = fs
+        .readdirSync(folderPath)
+        .filter((f) => f.endsWith(".md") || f.endsWith(".txt")); // Accepts both extensions now!
+
+      for (const file of files) {
+        documents.push(parseDocument(path.join(folderPath, file), categoryLabel));
+      }
+    } else if (entry.isFile() && (entry.name.endsWith(".md") || entry.name.endsWith(".txt"))) {
+      // Logic for files placed directly in the main data folder
+      documents.push(parseDocument(path.join(DATA_DIR, entry.name), "General Travel"));
     }
   }
 
